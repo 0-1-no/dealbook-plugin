@@ -30,7 +30,7 @@ Spør bare om det som mangler. Samle det du kan fra samtalen og filene først.
 - Hva slags avtale, og hva skal den oppnå?
 - Motparten: person eller selskap, navn, e-post, og hvem som signerer (navn, e-post, tittel).
 - Vår side: kjør `dealbook parties`. Er det en standard avtalepart, bruker du id-en med
-  `--party`. Da fylles vår side fra dealbook.no.
+  `--party`. Da fylles vår side fra dealbook.no, og datalaget trenger bare motparten.
 - Omfang, pris og betaling, start og slutt, oppsigelse, lovvalg og det som er spesielt.
 
 Organisasjonsnumre slår du opp (Companybook, Brønnøysundregistrene). Du finner dem ikke på.
@@ -91,6 +91,8 @@ tidsavbrudd er trygt. Svaret har avtale-id og lenke til dealbook.no.
   slutter å virke, og de som har fått lenke, får e-post om det. Kan ikke angres. Kjør først uten
   `--yes`, vis hvem som får beskjed, og kjør med `--yes` bare etter brukerens eksplisitte ja.
   Når alle har signert, er det for sent.
+- `dealbook archive <avtale-id>`: skjul en avsluttet avtale (avvist, utløpt, trukket tilbake)
+  fra oversikten. `dealbook restore <avtale-id>` henter den tilbake.
 
 ## Grenser
 
