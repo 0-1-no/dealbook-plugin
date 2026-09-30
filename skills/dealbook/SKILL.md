@@ -14,13 +14,14 @@ sign.dealbook.no, der hver signerer tegner og får en bevisside i PDF-en.
 - **CLI:** `dealbook` (eller `npx -y @companybook/dealbook`). Kjør `dealbook --help` for alle
   kommandoer. `--json` gir maskinlesbar utdata.
 - **MCP** (`mcp.dealbook.no`, når pluginen er koblet til): `list_agreements`,
-  `get_signing_status`, `list_parties`, `get_agreement_schema`, `send_for_signing` og flere.
+  `get_signing_status`, `list_parties`, `get_agreement_schema`, `send_for_signing`,
+  `withdraw_agreement` og flere.
   Samme nøkkel og samme regler som CLI-en. Lokal PDF (`render`) finnes bare i CLI-en.
 
 **Oppsett.** Kjør `dealbook whoami`. Mangler nøkkel, ber du brukeren lage en på
-https://dealbook.no/innstillinger/nokler og selv kjøre `dealbook login` i terminalen. MCP
-leser `DEALBOOK_API_KEY` fra miljøet. Be aldri om at nøkkelen limes inn i chatten, og legg
-den aldri i en kommando.
+https://dealbook.no/innstillinger/nokler og selv kjøre `npx -y @companybook/dealbook login` i
+terminalen. MCP-en leser den samme nøkkelen, så start Claude Code på nytt etter innlogging. Be
+aldri om at nøkkelen limes inn i chatten, og legg den aldri i en kommando.
 
 ## 1. Intervju
 
@@ -65,7 +66,8 @@ Brukeren kan også sende sin egen PDF. Da lager du bare datalaget og sender den 
 
 ## 4. Sending: bare etter eksplisitt ja
 
-Sending går til ekte e-postadresser og kan ikke trekkes tilbake. Kjør først uten `--yes`:
+Sending går til ekte e-postadresser. E-postene kan ikke hentes tilbake, selv om avtalen senere
+trekkes tilbake. Kjør først uten `--yes`:
 
 ```
 dealbook send avtale.json --pdf avtale.pdf [--party <id>] [--days 14]
@@ -85,6 +87,10 @@ tidsavbrudd er trygt. Svaret har avtale-id og lenke til dealbook.no.
 - `dealbook remind <avtale-id> <signerer-id>`: ny lenke til én signerer. Bare når brukeren ber
   om det. Den gamle lenken slutter å virke.
 - `dealbook document <avtale-id>`: last ned den signerte PDF-en med bevissider og segl.
+- `dealbook withdraw <avtale-id>`: trekk tilbake en avtale som venter på signatur. Lenkene
+  slutter å virke, og de som har fått lenke, får e-post om det. Kan ikke angres. Kjør først uten
+  `--yes`, vis hvem som får beskjed, og kjør med `--yes` bare etter brukerens eksplisitte ja.
+  Når alle har signert, er det for sent.
 
 ## Grenser
 

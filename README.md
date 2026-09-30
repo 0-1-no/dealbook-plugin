@@ -16,11 +16,8 @@ Lag en API-nøkkel på https://dealbook.no/innstillinger/nokler og logg inn med 
 npx -y @companybook/dealbook login
 ```
 
-MCP-serveren (`mcp.dealbook.no`) leser nøkkelen fra `DEALBOOK_API_KEY`:
-
-```
-export DEALBOOK_API_KEY=…   # i ~/.zshrc eller tilsvarende
-```
+MCP-serveren (`mcp.dealbook.no`) bruker den samme nøkkelen. Pluginen leser den fra
+`~/.config/dealbook/config.json`, som `login` skriver. Start Claude Code på nytt etter innlogging.
 
 ## Bruk
 

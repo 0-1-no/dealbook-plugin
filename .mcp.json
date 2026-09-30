@@ -3,7 +3,7 @@
     "dealbook": {
       "type": "http",
       "url": "https://mcp.dealbook.no/mcp",
-      "headers": { "Authorization": "Bearer ${DEALBOOK_API_KEY}" }
+      "headersHelper": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/mcp-headers.mjs\""
     }
   }
 }
