@@ -1,0 +1,11 @@
+{
+  "name": "dealbook",
+  "owner": { "name": "Dealbook", "url": "https://dealbook.no" },
+  "plugins": [
+    {
+      "name": "dealbook",
+      "source": "./",
+      "description": "Lag avtaler med agenten din og send dem til signering med Dealbook."
+    }
+  ]
+}

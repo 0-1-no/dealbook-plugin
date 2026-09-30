@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "dealbook": {
+      "type": "http",
+      "url": "https://mcp.dealbook.no/mcp",
+      "headers": { "Authorization": "Bearer ${DEALBOOK_API_KEY}" }
+    }
+  }
+}

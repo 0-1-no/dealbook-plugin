@@ -1,0 +1,39 @@
+{
+  "schema": "dealbook.agreement/v1",
+  "agreement": {
+    "title": "Konsulentavtale – Nordlys Analyse AS",
+    "type": "konsulentavtale",
+    "summary": "Rådgivning om datastrategi, 40 timer i oktober og november.",
+    "governingLaw": "Norsk rett. Oslo tingrett er verneting.",
+    "effectiveFrom": "2026-10-01",
+    "expiresAt": "2026-11-30",
+    "noticePeriod": "14 dager",
+    "value": { "amount": 58000, "currency": "NOK", "period": "one_time" }
+  },
+  "parties": [
+    {
+      "side": "ours",
+      "kind": "company",
+      "name": "Eksempel Rådgivning AS",
+      "signers": [{ "name": "Kari Nordmann", "email": "kari@example.com", "title": "Daglig leder" }]
+    },
+    {
+      "side": "theirs",
+      "kind": "company",
+      "name": "Nordlys Analyse AS",
+      "email": "post@example.org",
+      "signers": [{ "name": "Ola Hansen", "email": "ola@example.org", "title": "CTO" }]
+    }
+  ],
+  "highlights": [
+    { "key": "pris", "kind": "cost", "title": "Fastpris 58 000 kr", "summary": "40 timer à 1 450 kr eks. mva., fakturert ved levering.", "clause": "3" }
+  ],
+  "terms": [
+    { "key": "omfang", "label": "Omfang", "value": "Rådgivning om datastrategi, inntil 40 timer.", "clause": "2" },
+    { "key": "pris", "label": "Pris", "value": "58 000 kr eks. mva., 14 dagers betalingsfrist.", "clause": "3" },
+    { "key": "oppsigelse", "label": "Oppsigelse", "value": "14 dagers gjensidig oppsigelse.", "clause": "5" }
+  ],
+  "obligations": [
+    { "key": "sluttrapport", "title": "Levere sluttrapport", "timing": "dated", "dueDate": "2026-11-30", "owner": "ours", "status": "open" }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "dealbook",
+  "version": "0.1.0",
+  "description": "Lag avtaler med agenten din og send dem til signering med Dealbook. Følg status fra terminalen.",
+  "author": { "name": "Dealbook", "url": "https://dealbook.no" },
+  "homepage": "https://dealbook.no",
+  "repository": "https://github.com/0-1-no/dealbook-plugin",
+  "license": "MIT",
+  "keywords": ["avtaler", "kontrakter", "signering", "e-signatur"]
+}
