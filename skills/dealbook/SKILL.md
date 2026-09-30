@@ -1,21 +1,21 @@
 ---
 name: dealbook
-description: Lag en avtale sammen med brukeren og send den til signering med Dealbook. Bruk ved /dealbook, «lag en avtale», «kontrakt til signering», «send til signering», «har de signert?» eller status på en avtale i Dealbook.
+description: Lag en avtale sammen med brukeren, del den som forhåndsvisning og send den til signering med Dealbook. Bruk ved /dealbook, «lag en avtale», «kontrakt til signering», «send til signering», «vis avtalen til», «del et utkast», «har de signert?» eller status på en avtale i Dealbook.
 ---
 
 # /dealbook
 
-Fra samtale til signert avtale: intervju → utkast → revisjoner → PDF → sending etter et
-eksplisitt ja → oppfølging. Avtalene ligger på dealbook.no. Signering skjer på
-sign.dealbook.no, der hver signerer tegner og får en bevisside i PDF-en.
+Fra samtale til signert avtale: intervju → utkast → revisjoner → PDF → (utkast og
+forhåndsvisning i Dealbook) → sending etter et eksplisitt ja → oppfølging. Avtalene ligger på dealbook.no. Signering skjer på
+sign.dealbook.no, der hver signerer tegner signaturen sin. Alle samles i ett signaturbevis bak i PDF-en.
 
 ## Verktøy
 
 - **CLI:** `dealbook` (eller `npx -y @companybook/dealbook`). Kjør `dealbook --help` for alle
   kommandoer. `--json` gir maskinlesbar utdata.
 - **MCP** (`mcp.dealbook.no`, når pluginen er koblet til): `list_agreements`,
-  `get_signing_status`, `list_parties`, `get_agreement_schema`, `send_for_signing`,
-  `withdraw_agreement` og flere.
+  `get_signing_status`, `list_parties`, `get_agreement_schema`, `create_draft`, `share_preview`,
+  `send_for_signing` (også med `draftId`), `withdraw_agreement` og flere.
   Samme nøkkel og samme regler som CLI-en. Lokal PDF (`render`) finnes bare i CLI-en.
 
 **Oppsett.** Kjør `dealbook whoami`. Mangler nøkkel, ber du brukeren lage en på
@@ -64,6 +64,33 @@ som skiller seg ut. Spør om noe skal endres.
 Endre `avtale.md` og `avtale.json`, valider og render på nytt. Gjenta til brukeren er fornøyd.
 Brukeren kan også sende sin egen PDF. Da lager du bare datalaget og sender den PDF-en.
 
+## Utkast og forhåndsvisning
+
+Skal avtalen vises til noen før den sendes til signering, eller er motparten ikke klar ennå,
+lagrer du den som **utkast** i Dealbook. Et utkast trenger ingen motpart og sender ingenting:
+
+```
+dealbook draft [avtale.json] --pdf avtale.pdf [--title "…"] [--party <id>]
+```
+
+Uten datalag holder PDF-en og en tittel. Svaret har avtale-id-en.
+
+**Forhåndsvisning** er en lenke der mottakeren kan lese og laste ned avtalen, men ikke
+signere. Den virker for utkast og for avtaler som er sendt eller signert:
+
+```
+dealbook preview <avtale-id>                                  # bare lenke, vises én gang
+dealbook preview <avtale-id> --email <e> [--name <n>] [--message <m>]   # invitasjon
+```
+
+- Uten `--email` lages lenken med en gang. Gi den til brukeren; den vises bare én gang.
+- Med `--email` sendes en ekte e-post. Kjør først uten `--yes`, vis mottaker og melding, og
+  send med `--yes` bare etter brukerens eksplisitte ja, som ved sending til signering.
+- `dealbook previews <avtale-id>` viser lenkene med antall åpninger.
+  `dealbook preview-revoke <avtale-id> <lenke-id>` stopper en lenke.
+
+Brukeren kan også laste opp utkast og dele forhåndsvisning selv på dealbook.no.
+
 ## 4. Sending: bare etter eksplisitt ja
 
 Sending går til ekte e-postadresser. E-postene kan ikke hentes tilbake, selv om avtalen senere
@@ -72,6 +99,10 @@ trekkes tilbake. Kjør først uten `--yes`:
 ```
 dealbook send avtale.json --pdf avtale.pdf [--party <id>] [--days 14]
 ```
+
+Er avtalen allerede et utkast i Dealbook, sender du det som samme avtale med
+`--draft <avtale-id>`; da kan `--pdf` utelates (utkastets PDF brukes). Forhåndsvisningslenker
+og historikk følger med.
 
 Den viser hvem som får signeringslenke. Vis listen til brukeren og spør: «Skal jeg sende
 nå?» Først når brukeren har sagt ja til akkurat denne versjonen, kjører du samme kommando
@@ -86,7 +117,7 @@ tidsavbrudd er trygt. Svaret har avtale-id og lenke til dealbook.no.
 - `dealbook list [--status awaiting_signature]`: avtalene i arbeidsområdet.
 - `dealbook remind <avtale-id> <signerer-id>`: ny lenke til én signerer. Bare når brukeren ber
   om det. Den gamle lenken slutter å virke.
-- `dealbook document <avtale-id>`: last ned den signerte PDF-en med bevissider og segl.
+- `dealbook document <avtale-id>`: last ned den signerte PDF-en med signaturbevis og segl.
 - `dealbook withdraw <avtale-id>`: trekk tilbake en avtale som venter på signatur. Lenkene
   slutter å virke, og de som har fått lenke, får e-post om det. Kan ikke angres. Kjør først uten
   `--yes`, vis hvem som får beskjed, og kjør med `--yes` bare etter brukerens eksplisitte ja.

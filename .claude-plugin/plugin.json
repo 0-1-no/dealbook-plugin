@@ -1,6 +1,6 @@
 {
   "name": "dealbook",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Lag avtaler med agenten din og send dem til signering med Dealbook. Følg status fra terminalen.",
   "author": { "name": "Dealbook", "url": "https://dealbook.no" },
   "homepage": "https://dealbook.no",
