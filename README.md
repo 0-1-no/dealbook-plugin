@@ -10,7 +10,7 @@ Motparten signerer på sign.dealbook.no. Du følger status fra terminalen eller 
 /plugin install dealbook@dealbook
 ```
 
-Lag en API-nøkkel på https://dealbook.no/innstillinger/nokler og logg inn med CLI-en:
+Lag en API-nøkkel på https://dealbook.no/konto/nokler og logg inn med CLI-en:
 
 ```
 npx -y @companybook/dealbook login

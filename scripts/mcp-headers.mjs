@@ -11,21 +11,23 @@ export const configFile = (env) => join(env.XDG_CONFIG_HOME || join(env.HOME || 
 
 /** Headerne til MCP-serveren, eller null når ingen nøkkel finnes. */
 export function mcpHeaders(env, read = (path) => readFileSync(path, "utf8")) {
-  let key = env.DEALBOOK_API_KEY?.trim();
-  if (!key) {
-    try {
-      key = JSON.parse(read(configFile(env))).apiKey?.trim();
-    } catch {
-      key = undefined;
-    }
+  let file = {};
+  try {
+    file = JSON.parse(read(configFile(env)));
+  } catch {
+    file = {};
   }
-  return key ? { Authorization: `Bearer ${key}` } : null;
+  const key = env.DEALBOOK_API_KEY?.trim() || file.apiKey?.trim();
+  if (!key) return null;
+  // Valgt avtalepart for en nøkkel for Alle avtaleparter («dealbook use»). Agenten kan også sende workspace per kall.
+  const workspace = env.DEALBOOK_WORKSPACE?.trim() || file.workspace?.trim();
+  return { Authorization: `Bearer ${key}`, ...(workspace ? { "Dealbook-Workspace": workspace } : {}) };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const headers = mcpHeaders(process.env);
   if (!headers) {
-    console.error("Fant ingen Dealbook-nøkkel. Lag en på https://dealbook.no/innstillinger/nokler og kjør «npx -y @companybook/dealbook login».");
+    console.error("Fant ingen Dealbook-nøkkel. Lag en på https://dealbook.no/konto/nokler og kjør «npx -y @companybook/dealbook login».");
     process.exit(1);
   }
   process.stdout.write(JSON.stringify(headers));
