@@ -15,12 +15,15 @@ Gjelder AS. ASA og AS i VPS føres i verdipapirregisteret, ikke her.
 - **CLI:** `dealbook aksjeeierbok <kommando>` (eller `npx -y @companybook/dealbook aksjeeierbok`).
   `dealbook aksjeeierbok --help` viser alt. `--json` gir maskinlesbar utdata. Boken kan angis med id,
   organisasjonsnummer eller starten av navnet (`fjordlys`); eiere med nøkkel eller navn.
-- **MCP** (`mcp.dealbook.no`): `list_share_registers`, `create_share_register`, `get_share_register`,
-  `record_share_event` (med `dry_run`), `upsert_shareholder`, `share_register_history`,
-  `diff_share_register`, `void_share_register_event`, `revert_share_register`,
-  `get_share_register_guidance`, `get_share_register_insights`, `export_share_register`, `get_rf1086`,
-  `send_shareholder_notices`, `manage_share_register_links`, `get_share_register_schema`.
-- **Datalaget:** `dealbook aksjeeierbok schema` eller `get_share_register_schema` (JSON Schema for alle
+- **MCP** (`mcp.dealbook.no`): `list_smart_documents` (`kind: "share_register"`), `create_share_register`,
+  `get_share_register` (`view`: `register`, `schema`, `guidance`, `insights`, `history`, `diff`, `verify`, `export`,
+  `rf1086` med maskerte fødselsnumre; hvert svar er en side på høyst 10 KB: bla med `limit` og `next_cursor`,
+  `detail: "full"` gir alt, og eksport i JSON/CSV kommer som lenke), `record_share_event`
+  (med `dry_run`: hendelsen, diff, tellere og varsler, `detail: "full"` også før/etter; også rettingene `void` med
+  `seqs` og `revert` med `toVersion`, en aksjonær eller kontakt med `upsert_entity` (og `fnr`, lagret kryptert), og RF-1086 levert med
+  `mark_rf1086_filed` og `year`), `send_shareholder_notices`, `manage_share_register_links`,
+  `reveal_shareholder_fnr` (én aksjonær, eller `rf1086Year` for RF-1086 med fulle numre) og `archive_smart_document`.
+- **Datalaget:** `dealbook aksjeeierbok schema` eller `get_share_register` med `view: "schema"` (JSON Schema for alle
   kommandoer). Les det før du bygger en kommando du ikke har brukt før.
 
 Oppsett og nøkkel som i `/dealbook`: `dealbook whoami`; be aldri om nøkkelen i chatten.

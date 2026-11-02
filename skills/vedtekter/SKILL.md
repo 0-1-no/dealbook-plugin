@@ -20,18 +20,19 @@ sjekken endringen som bortfalt. Disse to hendelsene kan verken du eller brukeren
 - **CLI:** `dealbook vedtekter <kommando>` (eller `npx -y @companybook/dealbook vedtekter`).
   `dealbook vedtekter --help` viser alt. `--json` gir maskinlesbar utdata. Selskapet kan angis med id,
   organisasjonsnummer eller starten av navnet (`fjordlys`). Alt som endrer noe er en tørrkjøring uten `--yes`.
-- **MCP** (`mcp.dealbook.no`): `articles_list`, `articles_get`, `articles_interpret`, `articles_import`,
-  `articles_seed_from_companybook`, `articles_create`, `articles_preview`, `articles_apply`,
-  `articles_draft_amendment`, `articles_adopt_amendment`, `articles_file_amendment`,
-  `articles_mark_registered`, `articles_withdraw_amendment`, `articles_guidance`,
-  `articles_recommendations`, `articles_majority`, `articles_history`, `articles_diff`, `articles_verify`,
-  `articles_facts`, `articles_document`, `articles_source_url`, `articles_attach_signed_protocol`,
-  `articles_void`, `articles_revert`, `articles_archive`, `articles_schema`.
+- **MCP** (`mcp.dealbook.no`): fire verktøy. `articles_get` leser alt med `view` (`state`, `schema`, `guidance`,
+  `history`, `diff`, `verify`, `facts`, `majority`, `recommendations`, `document`, `source_url`); `articles_create`
+  oppretter (`import_articles`, `seed_from_companybook`, `blank_template`); `articles_apply` fører inn alle
+  kommandoene (også `draft_amendment`, `adopt_amendment`, `file_amendment`, `register_amendment`,
+  `withdraw_amendment`, `attach_signed_protocol`, `void`, `revert`) og tørrkjører med `dry_run: true`;
+  `articles_interpret` leser en fil. Lista og arkivering: `list_smart_documents` og `archive_smart_document`
+  med `kind: "articles"`. Arbeidsflyt for en endring: `articles_get view: "schema", type: "draft_amendment"`
+  (klausulene: `part: "clause", type: <klausultype>`) → `articles_apply` med `dry_run: true` → `articles_apply`.
 - **REST** (`api.dealbook.no/v1/articles`): samme operasjoner. Blant annet `GET /v1/articles/:id/sources/:documentId`
   (nedlastingslenke til en kildefil) og `POST /v1/articles/:id/amendments/:amendmentId/signed-protocol`
   (legg ved signert protokoll; kropp `{ "agreementId"?: string }`, 201 når den legges ved, 200 når den alt lå der).
-- **Datalaget:** `dealbook vedtekter schema` eller `articles_schema` (JSON Schema for klausulene og alle
-  kommandoene). Les det før du bygger en klausul eller kommando du ikke har brukt før.
+- **Datalaget:** `dealbook vedtekter schema` eller `articles_get` med `view: "schema"` (indeksen over delene og
+  kommandoene; `type` gir én kommando, `part` én del, hver høyst 10 KB). Les det før du bygger en klausul eller kommando du ikke har brukt før.
 
 Oppsett og nøkkel som i `/dealbook`: `dealbook whoami`; be aldri om nøkkelen i chatten.
 
@@ -44,13 +45,13 @@ Oppsett og nøkkel som i `/dealbook`: `dealbook whoami`; be aldri om nøkkelen i
 3. **Flertallet regnes av Dealbook.** Send aldri inn hvilket flertall en endring krever; send stemmene og
    les vurderingen (`majority`) i svaret. Står det `needs_review`, kan reglene ikke avgjøre det (fritekst):
    si det til brukeren og anbefal at en advokat ser på det.
-4. **Alltid forhåndsvisning før innføring.** CLI: kjør uten `--yes` først. MCP: `articles_preview` eller
+4. **Alltid forhåndsvisning før innføring.** CLI: kjør uten `--yes` først. MCP: `articles_apply` med
    `dry_run: true`. Vis endringene, flertallet og veiledningen, og før inn først etter et eksplisitt ja.
 5. **Konflikt (409)** betyr at noen andre har endret vedtektene, eller at selskapet allerede har vedtekter.
    Hent dem på nytt, vis hva som er endret, og spør igjen.
 6. **Blokkerende veiledning (✗)** stopper innføringen. Rett årsaken; bare hvis brukeren eksplisitt vil føre
    inn likevel, bruk `--override "<begrunnelse>"` (MCP: `override: { reason }`). Begrunnelsen logges.
-7. Dette er ikke juridisk rådgivning. Rådene (`articles_recommendations`) og flertallsvurderingen er
+7. Dette er ikke juridisk rådgivning. Rådene (`articles_get view: "recommendations"`) og flertallsvurderingen er
    hjelpemidler; ved tvil, anbefal advokat.
 
 ## 1. Finn eller opprett vedtektene
@@ -65,11 +66,11 @@ Oppsett og nøkkel som i `/dealbook`: `dealbook whoami`; be aldri om nøkkelen i
   Brønnøysund nyere, kommer en advarsel: dokumentet er trolig utdatert, så be brukeren om de nyeste vedtektene
   før du oppretter. Tolkning har en egen grense for antall kall per bruker, felles for nettsiden, API og MCP.
   Får du «for mange kall» (HTTP 429), vent og prøv igjen; ikke prøv i løkke. Opprett med
-  `--yes` (MCP: `articles_import` med forslagets `command`). Vil brukeren rette noe først:
+  `--yes` (MCP: `articles_create` med forslagets `command`). Vil brukeren rette noe først:
   `--out forslag.json`, rett filen, og `dealbook vedtekter import --file forslag.json --yes`.
 - **Du har allerede lest vedtektene selv:** bygg klausulene (type, terms og ordrett text, i
-  paragrafrekkefølge) og bruk `articles_import` uten `interpretation`. Da brukes ikke Dealbooks tolkning.
-- **Ingen fil:** `dealbook vedtekter seed <orgnr>` (MCP: `articles_seed_from_companybook`) rekonstruerer
+  paragrafrekkefølge) og bruk `articles_create` med `import_articles` og `interpretation: null`. Da brukes ikke Dealbooks tolkning.
+- **Ingen fil:** `dealbook vedtekter seed <orgnr>` (MCP: `articles_create` med `seed_from_companybook`; `dry_run: true` gir bare forslaget) rekonstruerer
   vedtektene fra Brønnøysund og lovens standardregler. Si tydelig at grunnlaget er ubekreftet til
   vedtektene er lastet opp.
 - **Nytt selskap eller full omskriving:** `articles_create` med `blank_template` og en profil (standard,
@@ -80,7 +81,7 @@ den er nådd.
 
 ## 2. Kontroller grunnlaget
 
-`dealbook vedtekter guidance <selskap>` (MCP: `articles_guidance`): minstekravene i § 2-2 (foretaksnavn,
+`dealbook vedtekter guidance <selskap>` (MCP: `articles_get view: "guidance"`): minstekravene i § 2-2 (foretaksnavn,
 virksomhet, aksjekapital og pålydende), avvik mot Brønnøysund og aksjeeierboken, språk og frister. Tolkede
 klausuler er ubekreftet til brukeren har sett på dem; bekreft med `confirm_clauses` (MCP: `articles_apply`)
 etter at brukeren har sagt ja. Feiltolkninger rettes med `set_interpretation` eller `correct_baseline`
@@ -96,7 +97,7 @@ etter at brukeren har sagt ja. Feiltolkninger rettes med `set_interpretation` el
 
    `dealbook vedtekter amend <selskap> --file endring.json` viser endringene og flertallet; `--yes` lagrer
    utkastet. En klausul uten id erstatter klausulen av samme type, ellers legges den til; `"remove": [id]`
-   fjerner. Via MCP (`articles_draft_amendment`) er `proposed` hele det nye settet: ta med de uendrede
+   fjerner. Via MCP (`articles_apply` med `draft_amendment`) er `proposed` hele det nye settet: ta med de uendrede
    klausulene med id. Flertallet:
    - **§ 5-18:** to tredeler av stemmene og av kapitalen som er representert (vanlige endringer).
    - **§ 5-19:** i tillegg mer enn ni tideler av kapitalen som er representert, når samtykke eller
@@ -107,7 +108,7 @@ etter at brukeren har sagt ja. Feiltolkninger rettes med `set_interpretation` el
    - **Aksjeklasser:** forringer endringen en hel klasses rett, må klassen i tillegg stemme for seg (§ 5-18 (2)).
 2. **Generalforsamling.** Innkallingen skal ha den eksakte nye ordlyden og sendes minst én uke før
    (§ 5-10): `dealbook vedtekter document <selskap> gf-notice-pdf --meeting-date <dato> [--meeting-time <tt:mm>]
-   [--meeting-place <sted>]` (MCP: `articles_document` med `meeting`). Protokollmal før møtet: `gf-protocol-pdf`.
+   [--meeting-place <sted>]` (MCP: `articles_get view: "document"` med `format` og `meeting`). Protokollmal før møtet: `gf-protocol-pdf`.
 3. **Vedtak.** `dealbook vedtekter adopt <selskap> --date <møtedato> --for <n> --against <n>
    --capital-for <kr> --capital-represented <kr>` (`--written` for skriftlig behandling). Til protokollen:
    `--time`, `--place`, `--chair` (møteleder), `--co-signer` (valgt blant de fremmøtte, § 5-16), og fremmøte,
@@ -115,7 +116,7 @@ etter at brukeren har sagt ja. Feiltolkninger rettes med `set_interpretation` el
    Brønnøysund. Det som mangler, står som tomme linjer i protokollen. Forhåndsvisningen sier om stemmene holder. Ved kapitalforhøyelse må endringen registreres innen 3 måneder (§ 10-9), ved
    nedsettelse innen 2 måneder (§ 12-4), ellers faller vedtaket bort.
    Protokoll sendt til signering i Dealbook legges ved endringen av seg selv når alle har signert. Mangler
-   kopien, hent den med `articles_attach_signed_protocol` (gir feil til alle har signert).
+   kopien, hent den med `articles_apply` og `command: { type: "attach_signed_protocol", amendmentId }` (gir feil til alle har signert).
 4. **Innsending.** Arbeidsarket for Samordnet registermelding: `document <selskap>
    registration-worksheet-pdf`. Etter innsending: `dealbook vedtekter file <selskap> --filed-on <dato>`.
    Fristen er «uten ugrunnet opphold» (foretaksregisterloven § 4-2); kapitalendringer har de harde fristene over.
@@ -124,7 +125,7 @@ etter at brukeren har sagt ja. Feiltolkninger rettes med `set_interpretation` el
    `dealbook vedtekter registered <selskap> --vedtektsdato <dato>`. Svaret kan ha oppfølging i
    aksjeeierboken (ny kapital, klasse); den føres aldri automatisk, så spør brukeren og bruk `/aksjeeierbok`.
 
-Et utkast som ikke skal gjennomføres trekkes med `articles_withdraw_amendment` (etter brukerens ja).
+Et utkast som ikke skal gjennomføres trekkes med `articles_apply` og `withdraw_amendment` (etter brukerens ja).
 
 ## 4. Dokumenter, historikk og retting
 
@@ -135,6 +136,6 @@ Et utkast som ikke skal gjennomføres trekkes med `articles_withdraw_amendment` 
   som gjelder internt.
 - `history <selskap>`, `diff <selskap> --from 1 --to 4` (eller `--amendment <id>`) og `verify <selskap>`.
 - Kildefilene (opplastede vedtekter, protokoll, signert protokoll) står i `state.documents` fra
-  `articles_get`. `articles_source_url` gir en nedlastingslenke som varer i 5 minutter; del den ikke videre.
-- Feilføringer rettes med `articles_void` (bestemte hendelser) eller `articles_revert` (tilbake til versjon
-  N), begge med begrunnelse og bare etter brukerens eksplisitte ja.
+  `articles_get`. `articles_get view: "source_url"` med `documentId` gir en nedlastingslenke som varer i 5 minutter; del den ikke videre.
+- Feilføringer rettes med `articles_apply` og `void` (bestemte hendelser, `seqs`) eller `revert` (tilbake til versjon
+  N, `toVersion`), begge med begrunnelse og bare etter brukerens eksplisitte ja.
