@@ -14,10 +14,10 @@ sign.dealbook.no, der hver signerer tegner signaturen sin. Alle samles i ett sig
 - **CLI:** `dealbook` (eller `npx -y @companybook/dealbook`). Kjør `dealbook --help` for alle
   kommandoer. `--json` gir maskinlesbar utdata.
 - **MCP** (`mcp.dealbook.no`, når pluginen er koblet til): `list_agreements`,
-  `list_workspaces`, `get_agreement` (med `view`: `signing`, `versions`, `feedback`, `previews`, `document`),
-  `list_parties`, `get_agreement` (`view: "schema"`), `create_draft`, `share_preview`, `manage_agreement` (`action`: arkivering,
-  tilbakemeldinger av/på og løst, trekke delingslenke), `update_agreement`, `send_for_signing` (også med `draftId`),
-  `remind_signer` og `withdraw_agreement`. De smarte dokumentene: `list_smart_documents`.
+  `list_workspaces`, `get_agreement` (med `view`: `signing`, `versions`, `diff`, `feedback`, `previews`, `document`),
+  `list_parties`, `get_agreement` (`view: "schema"`, `view: "package"`), `create_draft`, `upload_document`, `share_preview`,
+  `manage_agreement` (`action`: arkivering, tilbakemeldinger av/på og løst, trekke delingslenke, `link`/`unlink` i
+  avtalepakken), `update_agreement`, `send_for_signing` (også med `draftId`), `remind_signer` og `withdraw_agreement`. De smarte dokumentene: `list_smart_documents`.
   Samme nøkkel og samme regler som CLI-en. Lokal PDF (`render`) finnes bare i CLI-en.
 
 **Avtale-ID.** Hver avtale har en kort ID på 7 tegn, f.eks. `3fgfa34`. Den står på avtalesiden,
@@ -49,8 +49,7 @@ E-postadresser finner du heller ikke på. Mangler de, spør du.
 
 Lag to filer i en arbeidsmappe:
 
-- `avtale.md`: selve avtaleteksten. Bruk `#`/`##` for overskrifter, vanlige avsnitt og
-  `- ` for punkter. Nummerer punktene (1. Oppdraget, 2. Pris …). Skriv klart, vanlig norsk.
+- `avtale.md`: selve avtaleteksten, skrevet etter designstandarden under. Skriv klart, vanlig norsk.
 - `avtale.json`: datalaget `dealbook.agreement/v1`. Kjør `dealbook schema` for hele
   skjemaet. Se `eksempel.json` ved siden av denne fila.
   - `parties`: minst én part på hver side, hver med sine signerere.
@@ -64,6 +63,29 @@ Datalaget og teksten skal si det samme. Endrer du det ene, endrer du det andre.
 dealbook validate avtale.json
 dealbook render avtale.json --body avtale.md --out avtale.pdf
 ```
+
+### Designstandard
+
+`dealbook render` setter avtalen i Dealbooks klassiske avtaledesign: forside med avtaletypen, «mellom» og
+partene, en oversiktsside, seksjoner med nummererte punkter og en signaturside. Typografien er Libre
+Baskerville og Geist, bygget inn i PDF-en. Designet hentes fra strukturen i filene, så de må følge den:
+
+- `# Tittel` først (samme som `agreement.title`). Skriv tittelen som «Type – hva den gjelder», f.eks.
+  «Mandatavtale – formidling av oppkjøp for X AS». Delen før tankestreken blir avtaletypen i versaler på forsiden,
+  resten blir undertittelen.
+- Et kort avsnitt rett under tittelen (status, hvilket utkast) blir innledningen på oversiktssiden.
+- `## 1. Overskrift` for hver seksjon, nummerert.
+- `1.1 Tekst` for hvert punkt, ett avsnitt per punkt med tom linje mellom. Nummeret settes i egen kolonne.
+  Bruk `- ` bare for opplistinger inne i et punkt.
+- `[FORHANDLES: …]` markerer det som ikke er avklart (f.eks. `[FORHANDLES: 10 000 kr]`). Det vises med gul
+  markering i PDF-en. Fjern markeringene før avtalen sendes til signering.
+- `terms` i datalaget blir faktaradene på oversiktssiden, sammen med partene og datoene. Hver rad viser
+  `label`, `value` og «(punkt `clause`)». Hold verdiene korte (én til to linjer), og la `clause` peke på punktet i teksten.
+- Partene vises med navn og org.nr. fra datalaget (navn i versaler fra Brønnøysund blir vanlig skrift). `role`
+  («Oppdragsgiver», «Utleier») blir etiketten. Ellers står det «Part».
+- Ikke skriv egen signaturseksjon. Signatursiden lages fra signererne i datalaget.
+
+`--theme enkel` gir det gamle enkle oppsettet (én spalte med Helvetica, uten forside), bare når brukeren ber om det.
 
 Vis brukeren hvor PDF-en ligger, og oppsummer avtalen kort: parter, pris, varighet og det
 som skiller seg ut. Spør om noe skal endres.
@@ -114,7 +136,14 @@ under «Tilbakemeldinger» på avtalesiden, eller du gjør det når brukeren ber
 dealbook feedback-settings <avtale-id> --preview on [--signing on]
 dealbook feedback <avtale-id> [--unresolved]
 dealbook feedback-resolve <avtale-id> <id>   # når endringen er gjort (--reopen angrer)
+dealbook feedback-resolve <avtale-id> <id> --reply "Rettet i punkt 4.2."   # svar som den som skrev ser
+dealbook diff <avtale-id> [--from 1] [--to 2]  # hva som er endret i teksten per punkt, og i datalaget
 ```
+
+Etter en ny versjon (`dealbook update`) viser `dealbook feedback` hvor hver kommentar fra en eldre versjon står nå:
+uendret, «Teksten er endret» med teksten nå, eller «Teksten er fjernet». Bruk det til å foreslå hvilke som kan
+markeres som løst, og svar med `--reply` om hva som ble gjort. MCP: `get_agreement` med `view: "diff"` (`fields` med
+punktene gir full tekst) og `manage_agreement` `resolve_feedback` med `reply`.
 
 - Å slå feedback av eller på sender ingen e-post og krever ikke eget ja.
 - Mottakerne ser, endrer og fjerner sine egne tilbakemeldinger på siden. Eieren får ett samlet
@@ -147,6 +176,32 @@ dealbook document <avtale-id> --at <versjon> [--out fil.pdf]
   (`dealbook send avtale.json --draft <avtale-id>`), og det krever et nytt eksplisitt ja.
 - Har noen signert, kan avtalen ikke endres. Da må den trekkes tilbake og lages på nytt.
 - `--expect` stopper oppdateringen hvis noen andre har laget en versjon i mellomtiden.
+
+## Eksisterende dokumenter og avtalepakken
+
+Et dokument som allerede er signert (en forlengelse, et tillegg, et bilag), arkiveres hos avtaleparten og kobles til
+avtalen det hører til. Ingenting sendes.
+
+```
+dealbook upload forlengelse.pdf --signed-on 2026-10-30 --link <avtale-id> --kind amends
+dealbook upload forlengelse.pdf --analyze            # Dealbook leser det først (1–3 min)
+dealbook upload-save <opplastings-id> --link <avtale-id> --kind amends
+dealbook package <avtale-id>                         # avtalene i pakken, med koblings-id
+dealbook link <avtale-id> <annen-id> --kind refers_to
+dealbook unlink <avtale-id> <koblings-id>
+```
+
+(MCP: `upload_document` med `file`, `pdfUrl` eller `pdfBase64`, `linkTo` og `linkKind`; med `analyze: true` svarer den
+med `uploadId`, og samme verktøy med `uploadId` lagrer når analysen er ferdig. `get_agreement` med `view: "package"`;
+`manage_agreement` med `action: "link"` eller `"unlink"` og `linkId`.)
+
+- `--kind` leses «dokumentet <kind> avtalen»: `amends` (endrer), `replaces` (erstatter), `appendix_to` (vedlegg til),
+  `refers_to` (viser til), `same_file` (samme konvolutt).
+- Analysen foreslår tittel, type og signaturdato, og svaret har lignende avtaler (`similar`). Har brukeren ikke sagt hvilken
+  avtale dokumentet hører til, lagrer du uten kobling, viser kandidatene og kobler etter svaret (`dealbook link` /
+  `manage_agreement` med `action: "link"`).
+- Samme fil to ganger gir feil med den lagrede avtalens kort ID. Et dokument som skal signeres, er et utkast
+  (`dealbook draft`), ikke en opplasting.
 
 ## 4. Sending: bare etter eksplisitt ja
 
